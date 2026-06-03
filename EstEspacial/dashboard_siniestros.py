@@ -1005,6 +1005,63 @@ def run_dashboard_logic(selected_depts, selected_years, selected_vias, selected_
             hovertemplate=hover_tmpl,
             marker=dict(opacity=0.75)
         )
+
+        # ── DIBUJAR CARRETERAS ENCIMA DEL MAPA (DYNAMIC HIGHWAYS TRACING) ──
+        # Filtrar registros que tengan código de carretera válido
+        highway_dff = map_dff[
+            (map_dff['cod_carretera'].notnull()) & 
+            (map_dff['cod_carretera'] != "") & 
+            (~map_dff['cod_carretera'].isin(["NO CORRESPONDE", "SIN CLASIFICAR"]))
+        ]
+        
+        line_traces = []
+        if not highway_dff.empty:
+            # Agrupar por carretera para dibujar sus líneas
+            for h in highway_dff['cod_carretera'].unique():
+                df_h = highway_dff[highway_dff['cod_carretera'] == h]
+                # Necesitamos al menos 2 puntos para dibujar una línea
+                if len(df_h) < 2:
+                    continue
+                
+                # Heurística de ordenamiento: si la carretera es más "horizontal" o "vertical"
+                lat_range = df_h['lat'].max() - df_h['lat'].min()
+                lon_range = df_h['lon'].max() - df_h['lon'].min()
+                if lon_range > lat_range:
+                    df_h = df_h.sort_values(by='lon')
+                else:
+                    df_h = df_h.sort_values(by='lat')
+                
+                # Calcular total de siniestros en esta carretera bajo el filtro actual
+                total_h_siniestros = len(df_h)
+                total_h_fallecidos = df_h['fallecidos'].sum()
+                
+                # Determinar grosor y color según peligrosidad (siniestros)
+                if total_h_siniestros >= 50:
+                    line_color = "#ef4444"  # Rojo brillante neón
+                    line_width = 4.5
+                elif total_h_siniestros >= 15:
+                    line_color = "#f97316"  # Naranja
+                    line_width = 3.0
+                else:
+                    line_color = "#eab308"  # Amarillo
+                    line_width = 1.5
+                
+                # Crear la traza de la línea
+                line_trace = go.Scattermapbox(
+                    lat=df_h['lat'],
+                    lon=df_h['lon'],
+                    mode='lines',
+                    line=dict(width=line_width, color=line_color),
+                    name=f"Carretera {h}",
+                    hoverinfo='text',
+                    hovertext=f"<b>Carretera: {h}</b><br>Siniestros en tramo: {total_h_siniestros}<br>Fallecidos: {total_h_fallecidos}",
+                    showlegend=False
+                )
+                line_traces.append(line_trace)
+            
+            # Insertar las líneas al principio para que se rendericen DEBAJO de los puntos (scatter)
+            if line_traces:
+                fig_map.data = tuple(line_traces) + fig_map.data
     
     fig_map.update_layout(
         mapbox_style="carto-darkmatter",
