@@ -3,44 +3,74 @@
 # # Observatorio de Seguridad Vial (ONSV 2021-2023)
 # ## Notebook Interactivo de Consultas de Base de Datos con Pandas
 # 
-# Este script está estructurado utilizando celdas de código de VS Code (`# %%`). 
-# Puedes ejecutar cada sección de forma independiente haciendo clic en **"Run Cell"** 
-# encima de cada bloque si tienes instalada la extensión de Jupyter en tu IDE.
+# Este script está estructurado utilizando celdas de código de VS Code (`# %%`).
+# Cada sección tiene una explicación en Markdown (`# %% [markdown]`) y una celda de código ejecutable.
+# Puedes ejecutar cada sección individualmente haciendo clic en **"Run Cell"** (Ejecutar Celda) en tu IDE.
 
 # %%
 import os
 import pandas as pd
 import numpy as np
 
-# ── 1. CARGA Y PREPARACIÓN DE DATOS ──────────────────────────────────────────
-# Definir la ruta relativa al archivo Excel
+# %% [markdown]
+# ### ── 1. Carga y Normalización Robusta de Datos ──
+# En esta celda cargamos la base de datos de siniestros desde el archivo Excel.
+# Para evitar errores por tildes o caracteres especiales en las columnas (como `VÍA` o `COD CARRETERA`),
+# utilizamos una búsqueda parcial de nombres de columnas (insensible a mayúsculas y minúsculas).
+
+# %%
 script_dir = os.path.dirname(os.path.abspath(__file__)) if '__file__' in locals() else "."
 file_path = os.path.join(script_dir, "BBDD ONSV - SINIESTROS 2021-2023.xlsx")
 
 print("Cargando base de datos...")
 df = pd.read_excel(file_path, sheet_name="SINIESTROS")
 
-# Normalizar nombres de columnas para que coincidan con el dashboard
-rename_map = {
-    'CANTIDAD DE FALLECIDOS': 'fallecidos',
-    'CANTIDAD DE LESIONADOS': 'lesionados',
-    'CANTIDAD DE VEHICULOS DAADOS': 'vehiculos_danados',
-    'DEPARTAMENTO': 'departamento',
-    'PROVINCIA': 'provincia',
-    'DISTRITO': 'distrito',
-    'TIPO DE VA': 'tipo_via',
-    'COD CARRETERA': 'cod_carretera',
-    'FECHA SINIESTRO': 'fecha',
-    'HORA SINIESTRO': 'hora',
-    'CLASE SINIESTRO': 'clase',
-    'CONDICIN CLIMTICA': 'clima',
-    'COORDENADAS LATITUD': 'lat',
-    'COORDENADAS  LONGITUD': 'lon',
-    'CAUSA FACTOR PRINCIPAL': 'causa_principal'
-}
+# Normalizar y limpiar nombres de columnas de forma robusta
+rename_map = {}
+for col in df.columns:
+    col_upper = col.upper()
+    if "CDIGO" in col_upper or "CODIGO" in col_upper or "C\u00d3DIGO" in col_upper:
+        rename_map[col] = "codigo"
+    elif "FECHA" in col_upper:
+        rename_map[col] = "fecha"
+    elif "HORA" in col_upper:
+        rename_map[col] = "hora"
+    elif "CLASE" in col_upper:
+        rename_map[col] = "clase"
+    elif "FALLECIDOS" in col_upper:
+        rename_map[col] = "fallecidos"
+    elif "LESIONADOS" in col_upper:
+        rename_map[col] = "lesionados"
+    elif "VEHICULOS" in col_upper or "VEHCULOS" in col_upper or "VEHICULO" in col_upper:
+        rename_map[col] = "vehiculos_danados"
+    elif "DEPARTAMENTO" in col_upper:
+        rename_map[col] = "departamento"
+    elif "PROVINCIA" in col_upper:
+        rename_map[col] = "provincia"
+    elif "DISTRITO" in col_upper:
+        rename_map[col] = "distrito"
+    elif "ZONA" in col_upper:
+        rename_map[col] = "zona"
+    elif "TIPO DE" in col_upper or "TIPO_DE" in col_upper:
+        rename_map[col] = "tipo_via"
+    elif "RED VIAL" in col_upper or "RED_VIAL" in col_upper:
+        rename_map[col] = "red_vial"
+    elif "COD CARRETERA" in col_upper:
+        rename_map[col] = "cod_carretera"
+    elif "CICLOV" in col_upper:
+        rename_map[col] = "existe_ciclovia"
+    elif "LATITUD" in col_upper:
+        rename_map[col] = "lat"
+    elif "LONGITUD" in col_upper and "LONGITUDINAL" not in col_upper:
+        rename_map[col] = "lon"
+    elif "CLIM" in col_upper:
+        rename_map[col] = "clima"
+    elif "CAUSA FACTOR" in col_upper or "CAUSA_FACTOR" in col_upper:
+        rename_map[col] = "causa_principal"
+
 df = df.rename(columns=rename_map)
 
-# Preprocesamiento básico de fechas y normalización de textos
+# Preprocesamiento de variables temporales
 df['fecha_parsed'] = pd.to_datetime(df['fecha'], format='%d/%m/%Y', errors='coerce')
 df['year'] = df['fecha_parsed'].dt.year.fillna(2022).astype(int)
 df['month'] = df['fecha_parsed'].dt.month.fillna(1).astype(int)
@@ -49,12 +79,13 @@ df['departamento'] = df['departamento'].str.upper().str.strip().fillna("DESCONOC
 df['tipo_via'] = df['tipo_via'].str.upper().str.strip().fillna("OTRO")
 df['clase'] = df['clase'].str.upper().str.strip().fillna("OTRO")
 
-print(f"Base de datos cargada con éxito. Total registros: {len(df)}")
+print(f"Base de datos cargada y normalizada con éxito. Total registros: {len(df)}")
 
 
 # %% [markdown]
-# ## ── 2. CONSULTAS POR DEPARTAMENTO / REGION ────────────────────────────────
-# Modifica la variable `mi_region` para consultar cualquier departamento (ejemplo: 'PUNO', 'AREQUIPA', 'LIMA').
+# ### ── 2. Consulta y Estadísticas de una Región específica ──
+# Modifica la variable `mi_region` para filtrar por cualquier departamento del Perú.
+# Por defecto se establece en **PUNO**.
 
 # %%
 mi_region = "PUNO"  # <--- CAMBIA AQUÍ EL DEPARTAMENTO
@@ -73,8 +104,9 @@ print(df_region['clase'].value_counts().head(5))
 
 
 # %% [markdown]
-# ## ── 3. CONSULTAS POR TIPO DE VÍA ──────────────────────────────────────────
-# Modifica la variable `mi_via` para consultar clases de vía (ejemplo: 'CARRETERA', 'AVENIDA', 'CALLE', 'JARDIN').
+# ### ── 3. Consulta de Siniestros por Tipo de Vía ──
+# Filtra y analiza la peligrosidad según el tipo de infraestructura vial.
+# Modifica la variable `mi_via` (por ejemplo: 'CARRETERA', 'AVENIDA', 'CALLE').
 
 # %%
 mi_via = "CARRETERA"  # <--- CAMBIA AQUÍ EL TIPO DE VÍA
@@ -92,15 +124,16 @@ print(df_via.groupby(['departamento', 'provincia']).size().reset_index(name='sin
 
 
 # %% [markdown]
-# ## ── 4. CONSULTAS POR CLASE DE ACCIDENTE ────────────────────────────────────
-# Modifica `mi_clase` para consultar tipos específicos de accidente (ejemplo: 'CHOQUE', 'DESPISTE', 'ATROPELLO').
+# ### ── 4. Consulta por Clase de Accidente ──
+# Analiza cuáles son los motivos que causan cada clase de accidente.
+# Modifica `mi_clase` (por ejemplo: 'CHOQUE', 'DESPISTE', 'ATROPELLO').
 
 # %%
 mi_clase = "DESPISTE"  # <--- CAMBIA AQUÍ LA CLASE DE SINIESTRO
 
 df_clase = df[df['clase'] == mi_clase.upper()]
 
-print(f"=== REPORTE PARA CLASE DE SINIESTRO: {mi_clase} ===")
+print(f"=== REPORTE PARA CLASE: {mi_clase} ===")
 print(f"Total de Accidentes: {len(df_clase)}")
 print(f"Total de Fallecidos: {df_clase['fallecidos'].sum()}")
 print(f"Total de Lesionados: {df_clase['lesionados'].sum()}\n")
@@ -110,34 +143,16 @@ print(df_clase['causa_principal'].value_counts().head(5))
 
 
 # %% [markdown]
-# ## ── 5. CONSULTAS POR AÑO / PERIODO ────────────────────────────────────────
-# Filtra y compara las estadísticas interanuales.
+# ### ── 5. Consulta Avanzada Combinada (Multicriterio) ──
+# Esta celda te permite cruzar múltiples filtros de manera simultánea. 
+# Puedes configurar cada variable a tu gusto. Si pones `None`, ese filtro no se aplicará.
 
 # %%
-mi_ano = 2023  # <--- CAMBIA AQUÍ EL AÑO (2021, 2022, 2023)
-
-df_ano = df[df['year'] == mi_ano]
-
-print(f"=== REPORTE DE ACCIDENTABILIDAD - AÑO {mi_ano} ===")
-print(f"Total Siniestros: {len(df_ano)}")
-print(f"Total Fallecidos: {df_ano['fallecidos'].sum()}")
-print(f"Tasa de Letalidad Nacional del año: {df_ano['fallecidos'].mean():.2f}\n")
-
-# Agrupar mensualmente para ver evolución
-print("Distribución mensual de siniestros fatales:")
-print(df_ano.groupby('month').size().reset_index(name='siniestros'))
-
-
-# %% [markdown]
-# ## ── 6. CONSULTA MULTICRITERIO PERSONALIZADA ──────────────────────────────
-# Combina múltiples filtros simultáneos para obtener consultas muy específicas al antojo.
-
-# %%
-# Define tus criterios de búsqueda aquí:
-FILTRO_DEPARTAMENTO = "PUNO"       # Pon None para desactivar filtro
-FILTRO_VIA          = "CARRETERA"   # Pon None para desactivar filtro
-FILTRO_CLASE        = "CHOQUE"      # Pon None para desactivar filtro
-FILTRO_ANOS         = [2022, 2023]  # Lista de años a analizar
+# Configura tus criterios de búsqueda
+FILTRO_DEPARTAMENTO = "PUNO"       # Ej: "PUNO", "LIMA", "AREQUIPA" o None
+FILTRO_VIA          = "CARRETERA"   # Ej: "CARRETERA", "AVENIDA", "CALLE" o None
+FILTRO_CLASE        = "DESPISTE"    # Ej: "DESPISTE", "CHOQUE", "ATROPELLO" o None
+FILTRO_ANOS         = [2022, 2023]  # Años seleccionados (ej: [2021, 2022, 2023])
 
 # Aplicar filtros dinámicos secuenciales
 dff_query = df.copy()
@@ -151,15 +166,15 @@ if FILTRO_CLASE:
 if FILTRO_ANOS:
     dff_query = dff_query[dff_query['year'].isin(FILTRO_ANOS)]
 
-# Mostrar Resultados
-print("=== RESULTADOS DE CONSULTA COMBINADA A TU ANTOJO ===")
-print(f"Criterios: Dept={FILTRO_DEPARTAMENTO} | Vía={FILTRO_VIA} | Clase={FILTRO_CLASE} | Años={FILTRO_ANOS}")
-print(f"Registros encontrados: {len(dff_query)}")
-print(f"Total Fallecidos: {dff_query['fallecidos'].sum()}")
-print(f"Total Lesionados: {dff_query['lesionados'].sum()}\n")
+# Mostrar Resultados de la Búsqueda Avanzada
+print("=== RESULTADOS DE LA CONSULTA COMBINADA ===")
+print(f"Criterios activos: Dept={FILTRO_DEPARTAMENTO} | Vía={FILTRO_VIA} | Clase={FILTRO_CLASE} | Años={FILTRO_ANOS}")
+print(f"Registros coincidentes: {len(dff_query)}")
+print(f"Total de Fallecidos: {dff_query['fallecidos'].sum()}")
+print(f"Total de Lesionados: {dff_query['lesionados'].sum()}\n")
 
 if len(dff_query) > 0:
-    print("Detalle de los primeros 5 accidentes encontrados:")
-    print(dff_query[['fecha', 'provincia', 'distrito', 'fallecidos', 'causa_principal']].head(5))
+    print("Detalle de los primeros 10 accidentes coincidentes:")
+    print(dff_query[['fecha', 'provincia', 'distrito', 'fallecidos', 'causa_principal']].head(10))
 else:
-    print("No se encontraron registros para esta combinación de filtros.")
+    print("No se encontraron registros para la combinación de filtros seleccionada.")
