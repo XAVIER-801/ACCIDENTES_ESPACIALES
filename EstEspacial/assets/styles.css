@@ -1,0 +1,554 @@
+:root {
+    --dark-bg: #080b11;
+    --card-bg: #111622;
+    --card-border: #1f2937;
+    --text-color: #f1f5f9;
+    --label-color: #94a3b8;
+    --cyan-accent: #38bdf8;
+    --coral-accent: #ff7a45;
+    --emerald-accent: #059669;
+    --amber-accent: #d97706;
+    --purple-accent: #c084fc;
+}
+
+/* Desvanecer barras del sistema y resetear */
+body {
+    margin: 0;
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    overflow-x: hidden;
+}
+
+/* Contenedores con Efecto de Cristal Neumórfico (Glassmorphism) */
+.card-glass {
+    background: rgba(17, 22, 34, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 14px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-glass:hover {
+    border: 1px solid rgba(56, 189, 248, 0.15);
+    box-shadow: 0 14px 45px rgba(56, 189, 248, 0.05);
+}
+
+/* KPI Cards Especiales */
+.card-kpi {
+    background: rgba(17, 22, 34, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+}
+
+.card-kpi:hover {
+    transform: translateY(-2px);
+}
+
+/* Panel de filtros: permite que el menú se sobreponga al card inferior */
+.filter-panel {
+    position: relative !important;
+    z-index: 100 !important;
+    overflow: visible !important;
+}
+
+/* ══════════════════════════════════════════════
+   DROPDOWNS — DARK THEME
+   DOM real de Dash: button.dash-dropdown > span > span(s)
+   No usa React-Select, usa componente propio de Dash.
+   ══════════════════════════════════════════════ */
+
+/* Boton principal del dropdown */
+button.dark-dropdown {
+    background-color: #161d30 !important;
+    border: 1px solid #2d3748 !important;
+    border-radius: 8px !important;
+    color: #e2e8f0 !important;
+    padding: 6px 10px !important;
+    min-height: 38px !important;
+    cursor: pointer !important;
+    width: 100% !important;
+    text-align: left !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+    font-family: inherit !important;
+    font-size: 13px !important;
+    transition: border-color 0.2s ease !important;
+}
+
+button.dark-dropdown > span {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+}
+
+button.dark-dropdown:hover {
+    border-color: #4a5568 !important;
+    background-color: #1a2340 !important;
+}
+
+/* Texto dentro de los chips/tags individuales */
+button.dark-dropdown > span > span:first-child > span {
+    background-color: rgba(56, 189, 248, 0.12) !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    border-radius: 4px !important;
+    padding: 1px 6px !important;
+    margin: 1px 2px !important;
+    display: inline-block !important;
+}
+
+button.dark-dropdown > span > span:first-child > span > span {
+    color: #e2e8f0 !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+}
+
+/* Texto "N selected" — segundo span hijo (sin clase) 
+   Estructura: button > span > [span:chips] [span:count] [a:clear] */
+button.dark-dropdown > span > span:nth-child(2) {
+    color: var(--cyan-accent) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    background: rgba(56, 189, 248, 0.15) !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    border-radius: 4px !important;
+    padding: 2px 7px !important;
+    margin-left: 0 !important;
+    white-space: nowrap !important;
+}
+
+/* Botón limpiar (X) — clase real: .dash-dropdown-clear */
+.dash-dropdown-clear {
+    color: #94a3b8 !important;
+    font-size: 16px !important;
+    text-decoration: none !important;
+    margin-left: 0 !important;
+    padding: 0 !important;
+    opacity: 0.7 !important;
+    cursor: pointer !important;
+    line-height: 1 !important;
+}
+
+.dash-dropdown-clear:hover {
+    color: #ff7a45 !important;
+    opacity: 1 !important;
+}
+
+/* Flecha dropdown (pseudo-elemento ::after en el button) */
+button.dark-dropdown::after {
+    content: '' !important;
+    border-top: 5px solid #94a3b8 !important;
+    border-left: 4px solid transparent !important;
+    border-right: 4px solid transparent !important;
+    border-bottom: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin-left: 0 !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.2s ease !important;
+}
+
+/* Menú desplegable flotante — clase real: .dash-dropdown-content */
+.dash-dropdown-content {
+    background-color: #111827 !important;
+    border: 1px solid #2d3748 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85) !important;
+    z-index: 99999 !important;
+    padding: 0 !important;
+    /* Igualar al ancho exacto del botón (Radix UI CSS variable) */
+    width: var(--radix-popper-anchor-width) !important;
+    min-width: var(--radix-popper-anchor-width) !important;
+    max-width: var(--radix-popper-anchor-width) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Input de busqueda — STICKY al tope del menu */
+.dash-dropdown-search {
+    background-color: #1a2235 !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #374151 !important;
+    border-bottom: 1px solid #2d3748 !important;
+    border-radius: 0 !important;
+    border-top-left-radius: 10px !important;
+    border-top-right-radius: 10px !important;
+    padding: 9px 12px !important;
+    font-size: 12px !important;
+    width: 100% !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    /* STICKY: se queda fijo al hacer scroll */
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 20 !important;
+    flex-shrink: 0 !important;
+}
+
+.dash-dropdown-search:focus {
+    border-color: var(--cyan-accent) !important;
+    background-color: #1e293b !important;
+}
+
+/* Botones Select All / Deselect All — STICKY debajo del input */
+.dash-dropdown-content .dash-dropdown-action-button {
+    position: sticky !important;
+    top: 38px !important;
+    z-index: 19 !important;
+    background-color: #111827 !important;
+    flex-shrink: 0 !important;
+}
+
+/* Botones de accion (Select All / Deselect All) */
+.dash-dropdown-action-button {
+    background-color: rgba(56, 189, 248, 0.08) !important;
+    color: var(--cyan-accent) !important;
+    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    border-radius: 5px !important;
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+    cursor: pointer !important;
+    margin-bottom: 6px !important;
+    margin-right: 4px !important;
+    font-weight: 600 !important;
+}
+
+.dash-dropdown-action-button:hover {
+    background-color: rgba(56, 189, 248, 0.2) !important;
+}
+
+/* Opciones de la lista */
+.dash-dropdown-option, .dash-options-list-option {
+    background-color: transparent !important;
+    color: #cbd5e1 !important;
+    font-size: 12px !important;
+    padding: 7px 10px !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 2px !important;
+}
+
+.dash-dropdown-option:hover, .dash-options-list-option:hover {
+    background-color: #1f2a45 !important;
+    color: var(--cyan-accent) !important;
+}
+
+.dash-dropdown-option.selected, .dash-options-list-option.selected {
+    background-color: rgba(56, 189, 248, 0.1) !important;
+    color: var(--cyan-accent) !important;
+    font-weight: 700 !important;
+}
+
+/* Badges Neón */
+.neon-badge-red {
+    color: var(--coral-accent);
+    background: rgba(255, 122, 69, 0.12);
+    border: 1px solid rgba(255, 122, 69, 0.35);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    box-shadow: 0 0 10px rgba(255, 122, 69, 0.15);
+}
+
+.neon-badge-cyan {
+    color: var(--cyan-accent);
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+}
+
+/* Scrollbar Premium Ultrafina */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #273549;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--cyan-accent);
+}
+
+/* ══════════════════════════════════
+   PILL-BAR FILTER STYLES
+   ══════════════════════════════════ */
+
+/* La barra de filtro individual (tipo boceto) */
+.pill-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(22, 29, 48, 0.9);
+    border: 1px solid rgba(56, 189, 248, 0.18);
+    border-radius: 10px;
+    padding: 6px 12px;
+    cursor: pointer;
+    min-height: 40px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    user-select: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.pill-filter-bar:hover {
+    border-color: rgba(56, 189, 248, 0.45);
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.08);
+}
+
+.pill-filter-bar.open {
+    border-color: var(--cyan-accent);
+    box-shadow: 0 0 18px rgba(56, 189, 248, 0.15);
+}
+
+/* Etiqueta del filtro (REGIONES, AÑO, etc.) */
+.pill-filter-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--label-color);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+/* Zona de chips (pills individuales) */
+.pill-chips-zone {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    flex: 1;
+    min-width: 0;
+}
+
+/* Chip individual (ej: AMAZONAS) */
+.pill-chip {
+    background: rgba(56, 189, 248, 0.10);
+    border: 1px solid rgba(56, 189, 248, 0.30);
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-color);
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 120px;
+    display: inline-block;
+}
+
+/* Badge de conteo: "23 Seleccionados" */
+.pill-count-badge {
+    background: rgba(56, 189, 248, 0.14);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cyan-accent);
+    white-space: nowrap;
+}
+
+/* Botón limpiar ✕ */
+.pill-clear-btn {
+    color: #64748b;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0 2px;
+    transition: color 0.15s ease;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.pill-clear-btn:hover {
+    color: var(--coral-accent);
+}
+
+/* Chevron ▾ */
+.pill-chevron {
+    color: #64748b;
+    font-size: 12px;
+    transition: transform 0.2s ease, color 0.15s;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.pill-filter-bar.open .pill-chevron {
+    transform: rotate(180deg);
+    color: var(--cyan-accent);
+}
+
+/* Panel flotante con las opciones */
+.pill-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 240px;
+    background: #111827;
+    border: 1px solid #2d3748;
+    border-radius: 12px;
+    box-shadow: 0 16px 50px rgba(0,0,0,0.9), 0 0 0 1px rgba(56,189,248,0.08);
+    z-index: 999999;
+    overflow: visible;
+}
+
+/* Inner wrapper inside panel */
+.pill-panel > div {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Input de búsqueda dentro del panel */
+.pill-search {
+    width: 100%;
+    background: #1a2235;
+    color: #e2e8f0;
+    border: none;
+    border-bottom: 1px solid #2d3748;
+    padding: 10px 12px;
+    font-size: 12px;
+    outline: none;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.pill-search:focus {
+    background: #1e293b;
+    border-bottom-color: var(--cyan-accent);
+}
+
+/* Lista de opciones scrollable */
+.pill-options-list {
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 4px 6px;
+}
+
+/* Opción individual */
+.pill-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.pill-option:hover {
+    background: #1f2a45;
+}
+
+/* Checkbox personalizado */
+.pill-chk {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--cyan-accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* Botones Todo / Ninguno */
+.pill-action-btn {
+    background: rgba(56, 189, 248, 0.08);
+    color: var(--cyan-accent);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 5px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.pill-action-btn:hover {
+    background: rgba(56, 189, 248, 0.18);
+}
+
+.pill-action-none {
+    background: rgba(255, 122, 69, 0.08);
+    color: var(--coral-accent);
+    border-color: rgba(255, 122, 69, 0.25);
+}
+
+.pill-action-none:hover {
+    background: rgba(255, 122, 69, 0.18);
+}
+
+/* Checklist wrapper del Dash dentro del panel */
+.pill-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Cada item label dentro del checklist */
+.pill-chk-label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: background 0.15s ease !important;
+    color: var(--text-color) !important;
+    font-size: 12px !important;
+}
+
+.pill-chk-label span {
+    color: var(--text-color) !important;
+    font-size: 12px !important;
+}
+
+.pill-chk-label:hover {
+    background: rgba(56, 189, 248, 0.08) !important;
+    color: var(--cyan-accent) !important;
+}
+
+.pill-chk-label:hover span {
+    color: var(--cyan-accent) !important;
+}
+
+.pill-chk-label:has(input:checked) {
+    background: rgba(56, 189, 248, 0.12) !important;
+    color: var(--cyan-accent) !important;
+}
+
+.pill-chk-label:has(input:checked) span {
+    color: var(--cyan-accent) !important;
+    font-weight: 700 !important;
+}
+
+* {
+    box-sizing: border-box;
+}
